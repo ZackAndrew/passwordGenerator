@@ -1,4 +1,4 @@
-package com.zack.passwordGenerator.model;
+package com.zack.passwordGenerator.service;
 
 import com.zack.passwordGenerator.enums.CharacterType;
 import lombok.AllArgsConstructor;

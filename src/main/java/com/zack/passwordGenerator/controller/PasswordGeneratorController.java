@@ -1,5 +1,6 @@
 package com.zack.passwordGenerator.controller;
 
+import com.zack.passwordGenerator.dto.PasswordDTO;
 import com.zack.passwordGenerator.enums.CharacterType;
 import com.zack.passwordGenerator.service.PasswordGeneratorService;
 import org.springframework.http.HttpStatus;
@@ -20,9 +21,15 @@ public class PasswordGeneratorController {
     }
 
     @GetMapping("/generate")
-    public ResponseEntity<String> generatePassword(@RequestParam(defaultValue = "12") int length,
+    public ResponseEntity<PasswordDTO> generatePassword(@RequestParam(defaultValue = "12") int length,
                                                    @RequestParam(required = false) Set<CharacterType> types) {
         String password = service.generate(length, types);
-        return new ResponseEntity<>(password, HttpStatus.OK);
+        PasswordDTO response = new PasswordDTO(password, types, length);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("generate/save")
+    public ResponseEntity<String> savePassword(@RequestBody PasswordDTO dto){
+        return new ResponseEntity<>(service.savePassword(dto), HttpStatus.OK);
     }
 }
