@@ -70,4 +70,14 @@ public class PasswordGeneratorService {
 
         return passwordRepo.findByUser(user);
     }
+
+    public List<Password> searchPassword(String keyword) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Users user = userRepo.findByUsername(username);
+        if (user == null) throw new RuntimeException("User not found");
+
+        return passwordRepo.searchPassword(keyword, user);
+    }
 }

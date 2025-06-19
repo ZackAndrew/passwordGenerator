@@ -40,4 +40,9 @@ public class PasswordGeneratorController {
     public ResponseEntity<List<Password>> getPasswords() {
         return new ResponseEntity<>(service.getPasswords(), HttpStatus.OK);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Password>> searchPassword(@RequestParam String keyword){
+        return new ResponseEntity<>(service.searchPassword(keyword), HttpStatus.OK);
+    }
 }
