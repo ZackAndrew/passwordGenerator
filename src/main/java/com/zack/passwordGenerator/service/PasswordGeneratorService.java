@@ -1,6 +1,6 @@
 package com.zack.passwordGenerator.service;
 
-import com.zack.passwordGenerator.dto.PasswordDTO;
+import com.zack.passwordGenerator.dto.SavePasswordRequest;
 import com.zack.passwordGenerator.enums.CharacterType;
 import com.zack.passwordGenerator.model.Password;
 import com.zack.passwordGenerator.model.Users;
@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,27 +32,42 @@ public class PasswordGeneratorService {
         return passwordGenerator.generate(length, types);
     }
 
-    public String savePassword(PasswordDTO dto) {
+    public String savePassword(SavePasswordRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
         Users user = userRepo.findByUsername(username);
         if (user == null) throw new RuntimeException("User not found");
 
-        Set<CharacterType> t = Optional.ofNullable(dto.getTypes()).orElse(Set.of());
+        Set<CharacterType> t = Optional.ofNullable(request.getDto().getTypes()).orElse(Set.of());
 
         Password password = new Password();
-        password.setPassword(dto.getPassword());
+        password.setPassword(request.getDto().getPassword());
         password.setUser(user);
-        password.setLength(dto.getLength());
+        password.setLength(request.getDto().getLength());
         password.setHasUppercase(t.contains(CharacterType.UPPER));
         password.setHasSpecials(t.contains(CharacterType.SYMBOLS));
         password.setHasNumbers(t.contains(CharacterType.DIGITS));
-        password.setStrength(passwordStrengthCalculator.calculateStrength(dto.getLength(), t));
+        password.setStrength(passwordStrengthCalculator.calculateStrength(request.getDto().getLength(), t));
 
-        password.setStrength(passwordStrengthCalculator.calculateStrength(dto.getLength(), t));
+        password.setStrength(passwordStrengthCalculator.calculateStrength(request.getDto().getLength(), t));
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            password.setName(request.getName());
+        } else
+            password.setName("Untitled");
 
         passwordRepo.save(password);
         return "Password saved";
+    }
+
+    public List<Password> getPasswords() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Users user = userRepo.findByUsername(username);
+        if (user == null) throw new RuntimeException("User not found");
+
+        return passwordRepo.findByUser(user);
     }
 }

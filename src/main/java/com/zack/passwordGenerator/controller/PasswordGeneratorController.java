@@ -1,12 +1,15 @@
 package com.zack.passwordGenerator.controller;
 
 import com.zack.passwordGenerator.dto.PasswordDTO;
+import com.zack.passwordGenerator.dto.SavePasswordRequest;
 import com.zack.passwordGenerator.enums.CharacterType;
+import com.zack.passwordGenerator.model.Password;
 import com.zack.passwordGenerator.service.PasswordGeneratorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -22,14 +25,19 @@ public class PasswordGeneratorController {
 
     @GetMapping("/generate")
     public ResponseEntity<PasswordDTO> generatePassword(@RequestParam(defaultValue = "12") int length,
-                                                   @RequestParam(required = false) Set<CharacterType> types) {
+                                                        @RequestParam(required = false) Set<CharacterType> types) {
         String password = service.generate(length, types);
         PasswordDTO response = new PasswordDTO(password, types, length);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("generate/save")
-    public ResponseEntity<String> savePassword(@RequestBody PasswordDTO dto){
-        return new ResponseEntity<>(service.savePassword(dto), HttpStatus.OK);
+    public ResponseEntity<String> savePassword(@RequestBody SavePasswordRequest request) {
+        return new ResponseEntity<>(service.savePassword(request), HttpStatus.OK);
+    }
+
+    @GetMapping("/show")
+    public ResponseEntity<List<Password>> getPasswords() {
+        return new ResponseEntity<>(service.getPasswords(), HttpStatus.OK);
     }
 }

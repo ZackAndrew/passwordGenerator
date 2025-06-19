@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 public class Password {
 
     @Id
+    @Column(name = "password_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -22,19 +23,22 @@ public class Password {
 
     private String password;
 
-    private int length;
+    private Integer length;
 
     @Enumerated(EnumType.STRING)
     private PasswordStrength strength;
 
-    @Column(name = "has_uppercase" )
+    @Column(name = "has_uppercase")
     private boolean hasUppercase;
 
-    @Column(name = "has_numbers" )
+    @Column(name = "has_numbers")
     private boolean hasNumbers;
 
-    @Column(name = "has_specials" )
+    @Column(name = "has_specials")
     private boolean hasSpecials;
+
+    @Column(nullable = false)
+    private String name;
 
     @CreationTimestamp
     @Column(updatable = false)
