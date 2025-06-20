@@ -45,4 +45,15 @@ public class PasswordGeneratorController {
     public ResponseEntity<List<Password>> searchPassword(@RequestParam String keyword){
         return new ResponseEntity<>(service.searchPassword(keyword), HttpStatus.OK);
     }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Password> updatePasswordName(@PathVariable int id,
+                                                       @RequestParam String newName){
+        return new ResponseEntity<>(service.updatePasswordName(id, newName), HttpStatus.OK) ;
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deletePassword(@PathVariable int id){
+        return new ResponseEntity<>(service.deletePassword(id), HttpStatus.OK) ;
+    }
 }

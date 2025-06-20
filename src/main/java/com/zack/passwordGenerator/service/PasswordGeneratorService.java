@@ -7,8 +7,8 @@ import com.zack.passwordGenerator.model.Users;
 import com.zack.passwordGenerator.repo.PasswordRepo;
 import com.zack.passwordGenerator.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,17 +33,11 @@ public class PasswordGeneratorService {
     }
 
     public String savePassword(SavePasswordRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        Users user = userRepo.findByUsername(username);
-        if (user == null) throw new RuntimeException("User not found");
-
         Set<CharacterType> t = Optional.ofNullable(request.getDto().getTypes()).orElse(Set.of());
 
         Password password = new Password();
         password.setPassword(request.getDto().getPassword());
-        password.setUser(user);
+        password.setUser(currentUser());
         password.setLength(request.getDto().getLength());
         password.setHasUppercase(t.contains(CharacterType.UPPER));
         password.setHasSpecials(t.contains(CharacterType.SYMBOLS));
@@ -62,22 +56,45 @@ public class PasswordGeneratorService {
     }
 
     public List<Password> getPasswords() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        Users user = userRepo.findByUsername(username);
-        if (user == null) throw new RuntimeException("User not found");
-
-        return passwordRepo.findByUser(user);
+        return passwordRepo.findByUser(currentUser());
     }
 
     public List<Password> searchPassword(String keyword) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
+        return passwordRepo.searchPassword(keyword, currentUser());
+    }
 
-        Users user = userRepo.findByUsername(username);
-        if (user == null) throw new RuntimeException("User not found");
+    private Users currentUser() {
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
 
-        return passwordRepo.searchPassword(keyword, user);
+        return userRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
+    public Password updatePasswordName(int id, String newName) {
+        Users user = currentUser();
+        Password password = passwordRepo.findById(id).orElseThrow(() -> new RuntimeException("Password not found"));
+
+        if (currentUser().getUser_id() != password.getUser().getUser_id()) {
+            throw new RuntimeException("Access denied");
+        }
+
+        password.setName(newName == null || newName.isEmpty() ? "Untitled" : newName.trim());
+
+        return passwordRepo.save(password);
+    }
+
+    public String deletePassword(int id) {
+        Users user = currentUser();
+
+        Password password = passwordRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("No password"));
+
+        if (password.getUser().getUser_id() != user.getUser_id())
+            throw new RuntimeException("Access denied");
+
+        passwordRepo.delete(password);
+        return "Deleted";
     }
 }
